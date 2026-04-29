@@ -191,7 +191,7 @@ Respondé SOLO con JSON válido, sin texto adicional:
 
         try:
             response = client.messages.create(
-                model="claude-sonnet-4-20250514",
+                model="claude-sonnet-4-6",
                 max_tokens=150,
                 messages=[{"role": "user", "content": prompt}]
             )
@@ -267,7 +267,7 @@ Importante:
 - El tono es de un amigo inteligente que te cuenta lo más interesante"""
 
     response = client.messages.create(
-        model="claude-sonnet-4-20250514",
+        model="claude-sonnet-4-6",
         max_tokens=1500,
         messages=[{"role": "user", "content": prompt}]
     )
