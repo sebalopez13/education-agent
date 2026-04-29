@@ -1,7 +1,7 @@
 """
 Education News Agent
 ====================
-Corre 3 veces por semana (lunes, miércoles, viernes).
+Corre 2 veces por semana (lunes y viernes).
 Lee RSS feeds de fuentes curadas, scorea cada artículo con Claude,
 y envía un digest por Gmail.
 
@@ -252,7 +252,7 @@ Usá esta estructura exacta:
 
 {"<h3>🗽 NYC esta semana</h3>[Si hay artículos de NYC, 1-2 con una línea cada uno.]" if nyc_articles else ""}
 
-{"<h3>💡 Idea de la semana</h3>[Solo si es lunes o miércoles: un concepto educativo relevante para reflexionar, en 2-3 oraciones.]" if day_name in ["Monday", "Wednesday"] else ""}
+{"<h3>💡 Idea de la semana</h3>[Solo si es lunes: un concepto educativo relevante para reflexionar, en 2-3 oraciones.]" if day_name == "Monday" else ""}
 
 <hr>
 <p style="color:#999;font-size:12px;">Education Digest · 3 veces por semana · Powered by Claude</p>

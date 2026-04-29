@@ -2,8 +2,8 @@ name: Education Digest
 
 on:
   schedule:
-    # Lunes, miércoles y viernes a las 8am hora de Nueva York (UTC-4 en verano = 12:00 UTC)
-    - cron: "0 12 * * 1,3,5"
+    # Lunes y viernes a las 8am hora de Nueva York (UTC-4 en verano = 12:00 UTC)
+    - cron: "0 12 * * 1,5"
   workflow_dispatch: # permite correrlo manualmente desde GitHub
 
 jobs:
