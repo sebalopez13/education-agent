@@ -32,21 +32,20 @@ load_dotenv()
 # ─────────────────────────────────────────────
 
 RSS_FEEDS = {
-    # Tier 1 - Must haves
     "Edutopia":              "https://www.edutopia.org/feeds/posts",
     "EdSurge":               "https://www.edsurge.com/feeds/posts",
     "MindShift (KQED)":      "https://www.kqed.org/mindshift/feed",
     "The 74":                "https://www.the74million.org/feed/",
     "TeachThought":          "https://www.teachthought.com/feed/",
     "K-12 Dive":             "https://www.k12dive.com/feeds/news/",
-
-    # Tier 2 - Think tanks
     "Education Next":        "https://www.educationnext.org/feed/",
     "Hechinger Report":      "https://hechingerreport.org/feed/",
     "Cult of Pedagogy":      "https://www.cultofpedagogy.com/feed/",
-
-    # Tier 3 - NYC específico
+    "ISTE":                  "https://www.iste.org/feed",
     "XQ Institute":          "https://xqsuperschool.org/feed/",
+    "Chalkbeat NY":          "https://www.chalkbeat.org/arc/outboundfeeds/rss/",
+    "WEF Education":         "https://www.weforum.org/agenda/education/rss",
+    "OECD Education":        "https://oecdedutoday.com/feed/",
 }
 
 # ─────────────────────────────────────────────
@@ -217,7 +216,58 @@ Respondé SOLO con JSON válido, sin texto adicional:
 
 
 # ─────────────────────────────────────────────
-# PASO 4: GENERAR DIGEST CON CLAUDE
+# PASO 4a: RECURSO SORPRESA
+# ─────────────────────────────────────────────
+
+def get_classic(client: anthropic.Anthropic) -> dict:
+    prompt = """Eres el editor de un newsletter sobre educación del siglo 21.
+Para esta edición, elegí UN recurso que valga la pena conocer — puede ser:
+- Un TED talk clásico o reciente
+- Un episodio de podcast específico
+- Un documental
+- Un libro fundamental
+- Un artículo largo o ensayo icónico
+- Un video de YouTube sorprendente
+- Un reporte influyente
+
+El lector es alguien nuevo en el campo de educación innovadora,
+que quiere trabajar en este sector en NYC.
+Foco: pedagogía del siglo 21, EdTech, AI en educación, escuelas innovadoras.
+
+Sorprendelo — no elijas siempre lo más obvio.
+A veces un podcast de nicho o un documental poco conocido vale más que Ken Robinson por décima vez.
+
+Respondé SOLO con JSON válido:
+{
+  "titulo": "nombre del recurso",
+  "autor": "quien lo hizo",
+  "url": "link directo",
+  "tipo": "TED talk / podcast / documental / libro / artículo / reporte",
+  "por_que": "Una oración de por qué este recurso específico vale la pena ahora"
+}"""
+
+    try:
+        response = client.messages.create(
+            model="claude-sonnet-4-6",
+            max_tokens=400,
+            messages=[{"role": "user", "content": prompt}]
+        )
+        raw = response.content[0].text.strip()
+        raw = raw.replace("```json", "").replace("```", "").strip()
+        return json.loads(raw)
+    except Exception as e:
+        print(f"  ⚠️ Error generando clásico: {e}")
+        return {
+            "titulo": "Do Schools Kill Creativity?",
+            "autor": "Sir Ken Robinson — TED",
+            "url": "https://www.youtube.com/watch?v=iG9CE55wbtY",
+            "tipo": "TED talk",
+            "por_que": "El punto de partida de toda la conversación sobre reforma educativa."
+        }
+
+
+# ─────────────────────────────────────────────
+# PASO 4b: GENERAR DIGEST CON CLAUDE
 # ─────────────────────────────────────────────
 
 def generate_digest(articles: list[dict], client: anthropic.Anthropic) -> str:
@@ -225,6 +275,16 @@ def generate_digest(articles: list[dict], client: anthropic.Anthropic) -> str:
 
     today = datetime.now().strftime("%A %d %B %Y")
     day_name = datetime.now().strftime("%A")
+
+    # Recurso sorpresa de la edición
+    print("  🎲 Eligiendo recurso sorpresa...")
+    classic = get_classic(client)
+    classic_html = f"""
+    <h3 style="color:#8e44ad;">🎲 Recurso de la edición</h3>
+    <p><strong><a href="{classic['url']}">{classic['titulo']}</a></strong>
+    — {classic['autor']} &nbsp;·&nbsp; <em>{classic['tipo']}</em></p>
+    <p>{classic['por_que']}</p>
+    """
 
     # Separar top pick, nyc y resto
     nyc_articles = [a for a in articles if "NYC" in a["source"] or
@@ -254,8 +314,10 @@ Usá esta estructura exacta:
 
 {"<h3>💡 Idea de la semana</h3>[Solo si es lunes: un concepto educativo relevante para reflexionar, en 2-3 oraciones.]" if day_name == "Monday" else ""}
 
+{classic_html}
+
 <hr>
-<p style="color:#999;font-size:12px;">Education Digest · 3 veces por semana · Powered by Claude</p>
+<p style="color:#999;font-size:12px;">Education Digest · 2 veces por semana · Powered by Claude</p>
 
 Artículos disponibles:
 {articles_text}
