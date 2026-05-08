@@ -344,21 +344,24 @@ def send_email(html_content: str, subject: str):
     """Envía el digest por Gmail usando App Password."""
     gmail_user = os.getenv("GMAIL_USER")
     gmail_password = os.getenv("GMAIL_APP_PASSWORD")
-    recipient = os.getenv("RECIPIENT_EMAIL", gmail_user)
+    recipient_str = os.getenv("RECIPIENT_EMAIL", gmail_user)
+
+    # Support multiple comma-separated recipients
+    recipients = [r.strip() for r in recipient_str.split(",")]
 
     msg = MIMEMultipart("alternative")
     msg["Subject"] = subject
     msg["From"] = gmail_user
-    msg["To"] = recipient
+    msg["To"] = ", ".join(recipients)
 
     # Versión HTML
     msg.attach(MIMEText(html_content, "html"))
 
     with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
         server.login(gmail_user, gmail_password)
-        server.sendmail(gmail_user, recipient, msg.as_string())
+        server.sendmail(gmail_user, recipients, msg.as_string())
 
-    print(f"  📧 Email enviado a {recipient}")
+    print(f"  📧 Email enviado a {', '.join(recipients)}")
 
 
 # ─────────────────────────────────────────────
